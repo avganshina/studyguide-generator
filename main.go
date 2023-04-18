@@ -4,42 +4,45 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/PullRequestInc/go-gpt3"
 )
 
 func main() {
+	http.HandleFunc("/getresponse", func(w http.ResponseWriter, r *http.Request) {
+		apiKey := r.FormValue("apikey")
+		testName := r.FormValue("testname")
 
-	var apiKey string
-	var test_name string
+		if apiKey == "" {
+			http.Error(w, "Missing API Key", http.StatusBadRequest)
+			return
+		}
 
-	fmt.Println("Please enter your API KEY: ")
-	fmt.Scanln(&apiKey)
+		if testName == "" {
+			http.Error(w, "Missing Test Name", http.StatusBadRequest)
+			return
+		}
 
-	if apiKey == "" {
-		log.Fatalln("Missing API Key")
-	}
+		var inputText = "Tell me how to prepare for " + testName + " exam"
 
-	fmt.Println("What is the test you are preparing to? ")
-	fmt.Scanln(&test_name)
+		ctx := context.Background()
+		client := gpt3.NewClient(apiKey)
 
-	var input_text = "Tell me how to prepare for " + test_name + " exam"
+		err := client.CompletionStreamWithEngine(ctx, gpt3.TextDavinci003Engine, gpt3.CompletionRequest{
+			Prompt: []string{
+				inputText,
+			},
+			MaxTokens:   gpt3.IntPtr(300),
+			Temperature: gpt3.Float32Ptr(0),
+		}, func(resp *gpt3.CompletionResponse) {
+			fmt.Fprint(w, resp.Choices[0].Text)
+		})
 
-	ctx := context.Background()
-	client := gpt3.NewClient(apiKey)
-
-	err := client.CompletionStreamWithEngine(ctx, gpt3.TextDavinci003Engine, gpt3.CompletionRequest{
-		Prompt: []string{
-			input_text,
-		},
-		MaxTokens:   gpt3.IntPtr(300),
-		Temperature: gpt3.Float32Ptr(0),
-	}, func(resp *gpt3.CompletionResponse) {
-		fmt.Print(resp.Choices[0].Text)
+		if err != nil {
+			log.Fatalln(err)
+		}
 	})
 
-	if err != nil {
-		log.Fatalln(err)
-	}
-
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
