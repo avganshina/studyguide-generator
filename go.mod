@@ -1,8 +1,3 @@
-module github.com/avganshina/gpt-app
+module example.com/gpt3-demo
 
-go 1.20
-
-require (
-	github.com/PullRequestInc/go-gpt3 v1.1.15
-	github.com/joho/godotenv v1.5.1
-)
+go 1.16
