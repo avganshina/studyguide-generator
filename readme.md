@@ -13,10 +13,15 @@ This will start the server on port 8080. You can then access the application by 
 ## Usage
 To generate a guide for a specific exam, follow these steps:
 
-Visit http://localhost:8080/prepare-test in your web browser.
-Enter your OpenAI API key and the name of the exam you want to prepare for.
-Click the "Generate Guide" button.
-The application will then use the GPT-3 language model to generate a guide on how to prepare for the exam, which will be saved to a text file and downloaded to your computer.
+1. Visit http://localhost:8080/prepare-test in your web browser.
+2. Enter your OpenAI API key and the name of the exam you want to prepare for.
+3. Click the "Generate Guide" button.
+4. The application will then use the GPT-3 language model to generate a guide on how to prepare for the exam, which will be saved to a text file and downloaded to your computer.
+
+
+Here is how it will look like when you start the server and follow to http://localhost:8080/prepare-test
+
+![Alt text](frontendimg.png)
 
 ## Contributing
 Contributions to this project are welcome! If you would like to contribute, please open a pull request with your changes.
