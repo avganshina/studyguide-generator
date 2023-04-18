@@ -1,25 +1,26 @@
-package handler
+package main
 
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/PullRequestInc/go-gpt3"
 )
 
 type Request struct {
-	APIKey   string `json:"api_key"`
-	TestName string `json:"test_name"`
+	TestName string `json:"testName"`
+	ApiKey   string `json:"apiKey"`
 }
 
 type Response struct {
-	Result string `json:"result"`
+	Answer string `json:"answer"`
 }
 
-func Gpt3Handler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+func handler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -30,18 +31,22 @@ func Gpt3Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.APIKey == "" || req.TestName == "" {
-		http.Error(w, "Missing API key or test name", http.StatusBadRequest)
+	if req.ApiKey == "" {
+		http.Error(w, "Missing API key", http.StatusBadRequest)
+		return
+	}
+
+	if req.TestName == "" {
+		http.Error(w, "Missing test name", http.StatusBadRequest)
 		return
 	}
 
 	inputText := "Tell me how to prepare for " + req.TestName + " exam"
 
 	ctx := context.Background()
-	client := gpt3.NewClient(req.APIKey)
+	client := gpt3.NewClient(req.ApiKey)
 
 	var responseText string
-
 	err = client.CompletionStreamWithEngine(ctx, gpt3.TextDavinci003Engine, gpt3.CompletionRequest{
 		Prompt: []string{
 			inputText,
@@ -57,14 +62,11 @@ func Gpt3Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := Response{Result: responseText}
+	res := Response{Answer: responseText}
+	json.NewEncoder(w).Encode(res)
+}
 
-	resJSON, err := json.Marshal(res)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(resJSON)
+func main() {
+	http.HandleFunc("/", handler)
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
